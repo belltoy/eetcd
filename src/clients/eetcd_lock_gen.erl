@@ -13,13 +13,13 @@
 -export([unlock/1]).
 
 %% @doc Unary RPC for service at path "/v3lockpb.Lock/Lock" 
--spec lock(router_pb:'Etcd.LockRequest'()) ->
+-spec lock({#{}, router_pb:'Etcd.LockRequest'()}) ->
     {ok, router_pb:'Etcd.LockResponse'()}|{error,eetcd:eetcd_error()}.
 lock(Request) ->
     eetcd_stream:unary(Request, 'Etcd.LockRequest', <<"/v3lockpb.Lock/Lock">>, 'Etcd.LockResponse').
 
 %% @doc Unary RPC for service at path "/v3lockpb.Lock/Unlock" 
--spec unlock(router_pb:'Etcd.UnlockRequest'()) ->
+-spec unlock({#{}, router_pb:'Etcd.UnlockRequest'()}) ->
     {ok, router_pb:'Etcd.UnlockResponse'()}|{error,eetcd:eetcd_error()}.
 unlock(Request) ->
     eetcd_stream:unary(Request, 'Etcd.UnlockRequest', <<"/v3lockpb.Lock/Unlock">>, 'Etcd.UnlockResponse').

@@ -49,18 +49,17 @@ data(Pid, Ref, Msg, MsgName, IsFin) ->
     Ref.
 
 -spec unary(EtcdRequest, EtcdRequestName, Http2Path, EtcdResponseType) -> EtcdResponse when
-    EtcdRequest :: map(),
+    EtcdRequest :: {map(), map()},
     EtcdRequestName :: atom(),
     Http2Path :: iodata(),
     EtcdResponseType :: atom(),
     EtcdResponse :: tuple() | eetcd_error().
-unary(Request, RequestName, Path, ResponseType) ->
-    case maps:find(eetcd_conn_name, Request) of
+unary({EEtcdContext, _} = Request, RequestName, Path, ResponseType) ->
+    case maps:find(eetcd_conn_name, EEtcdContext) of
         {ok, Name} ->
             case eetcd_conn:round_robin_select(Name) of
                 {ok, Pid, Headers} ->
-                    NewRequest = maps:remove(eetcd_conn_name, Request),
-                    unary(Pid, NewRequest, RequestName, Path, ResponseType, Headers);
+                    unary(Pid, Request, RequestName, Path, ResponseType, Headers);
                 Err -> Err
             end;
         error -> {error, eetcd_conn_unavailable}
@@ -68,15 +67,15 @@ unary(Request, RequestName, Path, ResponseType) ->
 
 -spec unary(Pid, EtcdRequest, EtcdRequestName, Http2Path, EtcdResponseType, Http2Headers) -> EtcdResponse when
     Pid :: pid(),
-    EtcdRequest :: map(),
+    EtcdRequest :: {map(), map()},
     EtcdRequestName :: atom(),
     Http2Path :: iodata(),
     EtcdResponseType :: atom(),
     Http2Headers :: list(),
     EtcdResponse :: {ok, term()} | {error, eetcd_error()}.
-unary(Pid, Request, RequestName, Path, ResponseType, Headers) when is_pid(Pid) ->
-    Timeout = maps:get(eetcd_reply_timeout, Request, 9000),
-    EncodeBody = eetcd_grpc:encode(identity, maps:remove(eetcd_reply_timeout, Request), RequestName),
+unary(Pid, {EEtcdContext, Request}, RequestName, Path, ResponseType, Headers) when is_pid(Pid) ->
+    Timeout = maps:get(eetcd_reply_timeout, EEtcdContext, 9000),
+    EncodeBody = eetcd_grpc:encode(identity, Request, RequestName),
     MRef = erlang:monitor(process, Pid),
     StreamRef = gun:request(Pid, <<"POST">>, Path, Headers, EncodeBody),
     Res =

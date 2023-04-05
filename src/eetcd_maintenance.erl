@@ -8,21 +8,21 @@
 -spec alarm_list(new_context()) ->
     {ok,router_pb:'Etcd.AlarmResponse'()}|{error,eetcd_error()}.
 alarm_list(ConnName) ->
-    C1 = eetcd:new(ConnName),
+    {E, C1} = eetcd:new(ConnName),
     C2 = maps:put(action, 'GET', C1),
     C3 = maps:put(memberID, 0, C2),
     C4 = maps:put(alarm, 'NONE', C3),
-    eetcd_maintenance_gen:alarm(C4).
+    eetcd_maintenance_gen:alarm({E, C4}).
 
 %%% @doc AlarmDisarm disarms a given alarm.
 -spec alarm_disarm(new_context(), integer(), integer()) ->
     {ok,router_pb:'Etcd.AlarmResponse'()}|{error,eetcd_error()}.
 alarm_disarm(Context, MemberId, Alarm) ->
-    C1 = eetcd:new(Context),
+    {E, C1} = eetcd:new(Context),
     C2 = maps:put(action, 'DEACTIVATE', C1),
     C3 = maps:put(memberID, MemberId, C2),
     C4 = maps:put(alarm, Alarm, C3),
-    eetcd_maintenance_gen:alarm(C4).
+    eetcd_maintenance_gen:alarm({E, C4}).
 
 %%% @doc AlarmDisarmAll disarms all alarm.
 -spec alarm_disarm_all(new_context()) ->
@@ -66,8 +66,9 @@ status(Endpoint, Options) ->
     {ok,router_pb:'Etcd.HashKVResponse'()}|{error,eetcd_error()}.
 hash_kv(Endpoint, Options, Rev) ->
     Fun = fun(Conn) ->
-        Context = maps:put(revision, Rev, eetcd:new(Conn)),
-        eetcd_maintenance_gen:hash_kv(Context)
+        {E, C} = eetcd:new(Conn),
+        Context = maps:put(revision, Rev, C),
+        eetcd_maintenance_gen:hash_kv({E, Context})
           end,
     dial(Endpoint, Options, Fun).
 
@@ -82,9 +83,9 @@ hash_kv(Endpoint, Options, Rev) ->
 -spec move_leader(new_context(), pos_integer()) ->
     {ok,router_pb:'Etcd.MoveLeaderResponse'()}|{error,eetcd_error()}.
 move_leader(Context, TargetID) ->
-    C1 = eetcd:new(Context),
+    {E, C1} = eetcd:new(Context),
     C2 = maps:put(targetID, TargetID, C1),
-    eetcd_maintenance_gen:move_leader(C2).
+    eetcd_maintenance_gen:move_leader({E, C2}).
 
 %%%===================================================================
 %%% Internal functions

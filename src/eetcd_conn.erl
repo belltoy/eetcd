@@ -563,7 +563,7 @@ do_sync_memberlist(#{name := Name,
 %% SERVICE_UNKNOWN = 3;  // Used only by the Watch method.
 check_health_remote(Gun) ->
     Path = <<"/grpc.health.v1.Health/Check">>,
-    case eetcd_stream:unary(Gun, #{}, 'Etcd.HealthCheckRequest', Path, 'Etcd.HealthCheckResponse', ?HEADERS) of
+    case eetcd_stream:unary(Gun, new(), 'Etcd.HealthCheckRequest', Path, 'Etcd.HealthCheckResponse', ?HEADERS) of
         {ok, #{status := 'SERVING'}} -> ok;
         {ok, #{status := 'UNKNOWN'}} -> ok;
         %% etcd does not support health checks in early versions of v3 API
@@ -575,7 +575,7 @@ check_health_remote(Gun) ->
 
 check_leader_remote(Gun) ->
     Path = <<"/etcdserverpb.Maintenance/Status">>,
-    Request = eetcd:with_timeout(#{}, 10000),
+    Request = eetcd:with_timeout(new(), 10000),
     case eetcd_stream:unary(Gun, Request, 'Etcd.StatusRequest', Path, 'Etcd.StatusResponse', ?HEADERS) of
         {ok, #{leader := Leader}} when Leader > 0 -> ok;
         {ok, #{errors := Errors, leader := 0}} -> {error, {no_leader, Errors}};
@@ -585,14 +585,14 @@ check_leader_remote(Gun) ->
 token_remote(_Gun, undefined) -> {ok, undefined};
 token_remote(Gun, #{name := Name, password := Passwd}) ->
     Path = <<"/etcdserverpb.Auth/Authenticate">>,
-    Req1 = eetcd:with_timeout(#{}, 10000),
+    {E, Req1} = eetcd:with_timeout(new(), 10000),
     Req2 = maps:put(name, Name, Req1),
     Req3 =
         case Passwd of
             undefined -> Req2;
             _ -> maps:put(password, Passwd, Req2)
         end,
-    case eetcd_stream:unary(Gun, Req3, 'Etcd.AuthenticateRequest', Path, 'Etcd.AuthenticateResponse', ?HEADERS) of
+    case eetcd_stream:unary(Gun, {E, Req3}, 'Etcd.AuthenticateRequest', Path, 'Etcd.AuthenticateResponse', ?HEADERS) of
         {ok, #{token := Token}} -> {ok, Token};
         {error, _Reason} = Err -> Err
     end.
@@ -612,3 +612,6 @@ put_in_authenticate(Data, Options) ->
 shuffle(List) ->
     Disorders = [begin {rand:uniform(), K} end||K <-List],
     [begin K end||{_, K} <- lists:keysort(1, Disorders)].
+
+-spec new() -> context().
+new() -> {#{}, #{}}.

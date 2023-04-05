@@ -25,7 +25,7 @@
 new(Context) -> eetcd:new(Context).
 
 -spec new() -> context().
-new() -> #{}.
+new() -> {#{}, #{}}.
 
 %% @doc Timeout is an integer greater than zero which specifies how many milliseconds to wait for a reply,
 %% or the atom infinity to wait indefinitely. Default value is 5000.
@@ -35,19 +35,19 @@ with_timeout(Context, Timeout) -> eetcd:with_timeout(Context, Timeout).
 
 %%% @doc Sets data for the request's `key'.
 -spec with_key(context(), key()) -> context().
-with_key(Context, Key) ->
-    maps:put(key, Key, Context).
+with_key({E, GRPCContext}, Key) ->
+    {E, maps:put(key, Key, GRPCContext)}.
 
 %% @doc Sets data for the request's `value'.
 -spec with_value(context(), key()) -> context().
-with_value(Context, Key) ->
-    maps:put(value, Key, Context).
+with_value({E, Context}, Key) ->
+    {E, maps:put(value, Key, Context)}.
 
 %% @doc Enables `get', `delete' requests to operate
 %% on the keys with matching prefix. For example, `get(with_prefix(with_key(Ctx, "foo"))'
 %% can return 'foo1', 'foo2', and so on.
 -spec with_prefix(context()) -> context().
-with_prefix(#{key := Key} = Context) ->
+with_prefix({_, #{key := Key}} = Context) ->
     with_range_end(Context, eetcd:get_prefix_range_end(Key)).
 
 %%  @doc Specifies the range of `get', `delete' requests
@@ -58,19 +58,19 @@ with_from_key(Context) ->
 
 %% @doc Sets data for the request's `range_end'.
 -spec with_range_end(context(), iodata()) -> context().
-with_range_end(Context, End) ->
-    maps:put(range_end, End, Context).
+with_range_end({E, Context}, End) ->
+    {E, maps:put(range_end, End, Context)}.
 
 %% @doc Limit the number of results to return from `get' request.
 %% If with_limit is given a 0 limit, it is treated as no limit.
 -spec with_limit(context(), integer()) -> context().
-with_limit(Context, End) ->
-    maps:put(limit, End, Context).
+with_limit({E, Context}, End) ->
+    {E, maps:put(limit, End, Context)}.
 
 %% @doc Specifies the store revision for `get' request.
 -spec with_rev(context(), integer()) -> context().
-with_rev(Context, Rev) ->
-    maps:put(revision, Rev, Context).
+with_rev({E, Context}, Rev) ->
+    {E, maps:put(revision, Rev, Context)}.
 
 %% @doc Specifies the ordering in `get' request. It requires
 %% `with_range' and/or `with_prefix' to be specified too.
@@ -79,51 +79,51 @@ with_rev(Context, Rev) ->
 -spec with_sort(context(),
     'KEY' | 'VERSION' | 'VALUE' | 'CREATE' |'MOD',
     'NONE' | 'ASCEND' | 'DESCEND') -> context().
-with_sort(Context, Target, Order) ->
+with_sort({E, Context}, Target, Order) ->
     Targets = router_pb:find_enum_def('Etcd.RangeRequest.SortTarget'),
     Orders = router_pb:find_enum_def('Etcd.RangeRequest.SortOrder'),
     (not lists:keymember(Target, 1, Targets)) andalso throw({sort_target, Target}),
     (not lists:keymember(Order, 1, Orders)) andalso throw({sort_order, Order}),
     R1 = maps:put(sort_order, Order, Context),
-    maps:put(sort_target, Target, R1).
+    {E, maps:put(sort_target, Target, R1)}.
 
 %% @doc Make `get' request serializable. By default,
 %% it's linearizable. Serializable requests are better for lower latency
 %% requirement.
 -spec with_serializable(context()) -> context().
-with_serializable(Context) ->
-    maps:put(serializable, true, Context).
+with_serializable({E, Context}) ->
+    {E, maps:put(serializable, true, Context)}.
 
 %% @doc Make the `get' request return only the keys and the corresponding
 %% values will be omitted.
 -spec with_keys_only(context()) -> context().
-with_keys_only(Context) ->
-    maps:put(keys_only, true, Context).
+with_keys_only({E, Context}) ->
+    {E, maps:put(keys_only, true, Context)}.
 
 %% @doc Make the `get' request return only the count of keys.
 -spec with_count_only(context()) -> context().
-with_count_only(Context) ->
-    maps:put(count_only, true, Context).
+with_count_only({E, Context}) ->
+    {E, maps:put(count_only, true, Context)}.
 
 %% @doc Filter out keys for `get' with modification revisions less than the given revision.
 -spec with_min_mod_rev(context(), pos_integer()) -> context().
-with_min_mod_rev(Context, Rev) ->
-    maps:put(min_mod_revision, Rev, Context).
+with_min_mod_rev({E, Context}, Rev) ->
+    {E, maps:put(min_mod_revision, Rev, Context)}.
 
 %% @doc Filter out keys for `get' with modification revisions greater than the given revision.
 -spec with_max_mod_rev(context(), pos_integer()) -> context().
-with_max_mod_rev(Context, Rev) ->
-    maps:put(max_mod_revision, Rev, Context).
+with_max_mod_rev({E, Context}, Rev) ->
+    {E, maps:put(max_mod_revision, Rev, Context)}.
 
 %% @doc Filter out keys for `get' with creation revisions less than the given revision.
 -spec with_min_create_rev(context(), pos_integer()) -> context().
-with_min_create_rev(Context, Rev) ->
-    maps:put(min_create_revision, Rev, Context).
+with_min_create_rev({E, Context}, Rev) ->
+    {E, maps:put(min_create_revision, Rev, Context)}.
 
 %% @doc Filter out keys for `get' with creation revisions greater than the given revision.
 -spec with_max_create_rev(context(), pos_integer()) -> context().
-with_max_create_rev(Context, Rev) ->
-    maps:put(max_create_revision, Rev, Context).
+with_max_create_rev({E, Context}, Rev) ->
+    {E, maps:put(max_create_revision, Rev, Context)}.
 
 %% @doc Get the key with the oldest creation revision in the request range.
 -spec with_first_create(context()) -> context().
@@ -166,33 +166,33 @@ with_top(Context, SortTarget, SortOrder) ->
 %% @doc Get the previous key-value pair before the event happens.
 %% If the previous KV is already compacted, nothing will be returned.
 -spec with_prev_kv(context()) -> context().
-with_prev_kv(Context) ->
-    maps:put(prev_kv, true, Context).
+with_prev_kv({E, Context}) ->
+    {E, maps:put(prev_kv, true, Context)}.
 
 %% @doc Attach a lease ID to a key in `put' request.
 -spec with_lease(context(), integer()) -> context().
-with_lease(Context, Id) when is_integer(Id) ->
-    maps:put(lease, Id, Context).
+with_lease({E, Context}, Id) when is_integer(Id) ->
+    {E, maps:put(lease, Id, Context)}.
 
 %% @doc Update the key using its current value.
 %% This option can not be combined with non-empty values.
 %% Returns an error if the key does not exist.
 -spec with_ignore_value(context()) -> context().
-with_ignore_value(Context) ->
-    maps:put(ignore_value, true, Context).
+with_ignore_value({E, Context}) ->
+    {E, maps:put(ignore_value, true, Context)}.
 
 %% @doc Update the key using its current lease.
 %% This option can not be combined with `with_lease/2'.
 %% Returns an error if the key does not exist.
 -spec with_ignore_lease(context()) -> context().
-with_ignore_lease(Context) ->
-    maps:put(ignore_lease, true, Context).
+with_ignore_lease({E, Context}) ->
+    {E, maps:put(ignore_lease, true, Context)}.
 
 %% @doc WithPhysical makes Compact wait until all compacted entries are
 %% removed from the etcd server's storage.
 -spec with_physical(context()) -> context().
-with_physical(Context) ->
-    maps:put(physical, true, Context).
+with_physical({E, Context}) ->
+    {E, maps:put(physical, true, Context)}.
 
 %%% @doc Put puts a key-value pair into etcd.
 %%% <dl>
@@ -269,7 +269,7 @@ put(Context, Key, Value) ->
 %%% @end
 -spec get(context()) ->
     {ok, router_pb:'Etcd.RangeResponse'()}|{error, eetcd_error()}.
-get(Context) when is_map(Context) -> eetcd_kv_gen:range(Context).
+get({_, C1} = Context) when is_map(C1) -> eetcd_kv_gen:range(Context).
 
 %%% @doc Get retrieves keys with options.
 -spec get(new_context(), key()) ->
@@ -299,7 +299,7 @@ get(Context, Key) ->
 %%% @end
 -spec delete(context()) ->
     {ok, router_pb:'Etcd.DeleteRangeResponse'()}|{error, eetcd_error()}.
-delete(Context) when is_map(Context) -> eetcd_kv_gen:delete_range(Context).
+delete({_, C1} = Context) when is_map(C1) -> eetcd_kv_gen:delete_range(Context).
 %%% @doc Delete deletes a key with options
 -spec delete(new_context(), key()) ->
     {ok, router_pb:'Etcd.DeleteRangeResponse'()}|{error, eetcd_error()}.
@@ -327,7 +327,7 @@ delete(Context, Key) ->
 %%% @end
 -spec compact(context()) ->
     {ok, router_pb:'Etcd.CompactionResponse'()}|{error, eetcd_error()}.
-compact(Context) when is_map(Context) -> eetcd_kv_gen:compact(Context).
+compact({_, C1} = Context) when is_map(C1) -> eetcd_kv_gen:compact(Context).
 %% @doc Compact compacts etcd KV history before the given revision with options
 -spec compact(new_context(), integer()) ->
     {ok, router_pb:'Etcd.CompactionResponse'()}|{error, eetcd_error()}.
@@ -362,9 +362,9 @@ compact(Context, Revision) ->
 -spec txn(new_context(), [router_pb:'Etcd.Compare'()], [router_pb:'Etcd.RequestOp'()], [router_pb:'Etcd.RequestOp'()]) ->
     {ok, router_pb:'Etcd.TxnResponse'()}|{error, eetcd_error()}.
 txn(Context, If, Then, Else) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     Compare = case is_list(If) of true -> If; false -> [If] end,
     Success = case is_list(Then) of true -> Then; false -> [Then] end,
     Failure = case is_list(Else) of true -> Else; false -> [Else] end,
     Txn = maps:merge(#{compare => Compare, success => Success, failure => Failure}, C1),
-    eetcd_kv_gen:txn(Txn).
+    eetcd_kv_gen:txn({E, Txn}).

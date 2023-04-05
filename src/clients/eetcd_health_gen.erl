@@ -13,13 +13,13 @@
 -export([watch/1]).
 
 %% @doc Unary RPC for service at path "/etcdserverpb.Health/Check" 
--spec check(router_pb:'Etcd.HealthCheckRequest'()) ->
+-spec check({#{}, router_pb:'Etcd.HealthCheckRequest'()}) ->
     {ok, router_pb:'Etcd.HealthCheckResponse'()}|{error,eetcd:eetcd_error()}.
 check(Request) ->
     eetcd_stream:unary(Request, 'Etcd.HealthCheckRequest', <<"/etcdserverpb.Health/Check">>, 'Etcd.HealthCheckResponse').
 
 %% @doc Unary RPC for service at path "/etcdserverpb.Health/Watch" 
--spec watch(router_pb:'Etcd.HealthCheckRequest'()) ->
+-spec watch({#{}, router_pb:'Etcd.HealthCheckRequest'()}) ->
     {ok, router_pb:'Etcd.HealthCheckResponse'()}|{error,eetcd:eetcd_error()}.
 watch(Request) ->
     eetcd_stream:unary(Request, 'Etcd.HealthCheckRequest', <<"/etcdserverpb.Health/Watch">>, 'Etcd.HealthCheckResponse').

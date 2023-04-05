@@ -34,20 +34,20 @@ with_timeout(Ctx, Timeout) -> eetcd:with_timeout(Ctx, Timeout).
 
 %%% @doc name is the election's identifier for the campaign.
 -spec with_name(context(), Name :: binary()) -> context().
-with_name(Ctx, Name) ->
-    maps:put(name, Name, Ctx).
+with_name({E, Ctx}, Name) ->
+    {E, maps:put(name, Name, Ctx)}.
 
 %%% @doc lease is the ID of the lease attached to leadership of the election. If the
 %%  lease expires or is revoked before resigning leadership, then the
 %%  leadership is transferred to the next campaigner, if any.
 -spec with_lease(context(), LeaseID :: integer()) -> context().
-with_lease(Ctx, LeaseID) ->
-    maps:put(lease, LeaseID, Ctx).
+with_lease({E, Ctx}, LeaseID) ->
+    {E, maps:put(lease, LeaseID, Ctx)}.
 
 %%% @doc value is the value set when the campaigner wins the election.
 -spec with_value(context(), Value :: binary()) -> context().
-with_value(Ctx, Value) ->
-    maps:put(value, Value, Ctx).
+with_value({E, Ctx}, Value) ->
+    {E, maps:put(value, Value, Ctx)}.
 
 %%% @doc  leader describes the resources used for holding leadership of the election.
 %%%  It's a map return from CampaignResponse
@@ -56,8 +56,8 @@ with_value(Ctx, Value) ->
 %%% rev is the creation revision of the key. It can be used to test for ownership of an election during transactions by testing the key's creation revision matches rev.
 %%% lease is the lease ID of the election leader.
 -spec with_leader(context(), LeaderKey :: leader_key()) -> context().
-with_leader(Ctx, LeaderKey) ->
-    maps:put(leader, LeaderKey, Ctx).
+with_leader({E, Ctx}, LeaderKey) ->
+    {E, maps:put(leader, LeaderKey, Ctx)}.
 
 %%% @doc
 %%% Campaign waits to acquire leadership in an election, returning a LeaderKey
@@ -114,9 +114,9 @@ campaign(Ctx, Name, LeaseId, Value) ->
 -spec campaign_request(name(), Name :: binary(), LeaseId :: integer(), Value :: binary()) ->
     {ok, campaign_ctx()} | {error, eetcd_error()}.
 campaign_request(ConnName, Name, LeaseId, Value) ->
-    Request0 = with_name(#{}, Name),
+    Request0 = with_name({#{}, #{}}, Name),
     Request1 = with_lease(Request0, LeaseId),
-    Request = with_value(Request1, Value),
+    {_, Request} = with_value(Request1, Value),
     case eetcd_stream:new(ConnName, <<"/v3electionpb.Election/Campaign">>) of
         {ok, Gun, StreamRef} ->
             MRef = erlang:monitor(process, Gun),

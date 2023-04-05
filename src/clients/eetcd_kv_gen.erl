@@ -16,31 +16,31 @@
 -export([compact/1]).
 
 %% @doc Unary RPC for service at path "/etcdserverpb.KV/Range" 
--spec range(router_pb:'Etcd.RangeRequest'()) ->
+-spec range({#{}, router_pb:'Etcd.RangeRequest'()}) ->
     {ok, router_pb:'Etcd.RangeResponse'()}|{error,eetcd:eetcd_error()}.
 range(Request) ->
     eetcd_stream:unary(Request, 'Etcd.RangeRequest', <<"/etcdserverpb.KV/Range">>, 'Etcd.RangeResponse').
 
 %% @doc Unary RPC for service at path "/etcdserverpb.KV/Put" 
--spec put(router_pb:'Etcd.PutRequest'()) ->
+-spec put({#{}, router_pb:'Etcd.PutRequest'()}) ->
     {ok, router_pb:'Etcd.PutResponse'()}|{error,eetcd:eetcd_error()}.
 put(Request) ->
     eetcd_stream:unary(Request, 'Etcd.PutRequest', <<"/etcdserverpb.KV/Put">>, 'Etcd.PutResponse').
 
 %% @doc Unary RPC for service at path "/etcdserverpb.KV/DeleteRange" 
--spec delete_range(router_pb:'Etcd.DeleteRangeRequest'()) ->
+-spec delete_range({#{}, router_pb:'Etcd.DeleteRangeRequest'()}) ->
     {ok, router_pb:'Etcd.DeleteRangeResponse'()}|{error,eetcd:eetcd_error()}.
 delete_range(Request) ->
     eetcd_stream:unary(Request, 'Etcd.DeleteRangeRequest', <<"/etcdserverpb.KV/DeleteRange">>, 'Etcd.DeleteRangeResponse').
 
 %% @doc Unary RPC for service at path "/etcdserverpb.KV/Txn" 
--spec txn(router_pb:'Etcd.TxnRequest'()) ->
+-spec txn({#{}, router_pb:'Etcd.TxnRequest'()}) ->
     {ok, router_pb:'Etcd.TxnResponse'()}|{error,eetcd:eetcd_error()}.
 txn(Request) ->
     eetcd_stream:unary(Request, 'Etcd.TxnRequest', <<"/etcdserverpb.KV/Txn">>, 'Etcd.TxnResponse').
 
 %% @doc Unary RPC for service at path "/etcdserverpb.KV/Compact" 
--spec compact(router_pb:'Etcd.CompactionRequest'()) ->
+-spec compact({#{}, router_pb:'Etcd.CompactionRequest'()}) ->
     {ok, router_pb:'Etcd.CompactionResponse'()}|{error,eetcd:eetcd_error()}.
 compact(Request) ->
     eetcd_stream:unary(Request, 'Etcd.CompactionRequest', <<"/etcdserverpb.KV/Compact">>, 'Etcd.CompactionResponse').

@@ -29,27 +29,27 @@ with_timeout(Context, Timeout) -> eetcd:with_timeout(Context, Timeout).
 -spec grant(new_context(), pos_integer()) ->
     {ok, router_pb:'Etcd.LeaseGrantResponse'()}|{error, eetcd_error()}.
 grant(Context, TTL) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put('TTL', TTL, C1),
-    eetcd_lease_gen:lease_grant(C2).
+    eetcd_lease_gen:lease_grant({E, C2}).
 
 %% @doc Revoke revokes the given lease.
 -spec revoke(new_context(), pos_integer()) ->
     {ok, router_pb:'Etcd.LeaseGrantResponse'()}|{error, eetcd_error()}.
 revoke(Context, LeaseID) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put('ID', LeaseID, C1),
-    eetcd_lease_gen:lease_revoke(C2).
+    eetcd_lease_gen:lease_revoke({E, C2}).
 
 %% @doc TimeToLive retrieves the lease information of the given lease ID.
 %% The 3rd argument is a option of `NeedAttachedKeys'.
 -spec time_to_live(new_context(), pos_integer(), boolean()) ->
     {ok, router_pb:'Etcd.LeaseTimeToLiveResponse'()}|{error, eetcd_error()}.
 time_to_live(Context, LeaseID, WithKeys) when is_boolean(WithKeys) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put('ID', LeaseID, C1),
     C3 = maps:put(keys, WithKeys, C2),
-    case eetcd_lease_gen:lease_time_to_live(C3) of
+    case eetcd_lease_gen:lease_time_to_live({E, C3}) of
         {ok, #{'TTL' := TTL}} when TTL =< 0 ->
             {error, {grpc_error, #{'grpc-status' => ?GRPC_STATUS_NOT_FOUND, 'grpc-message' => ?LeaseNotFound}}};
         {ok, _Reps} = Status -> Status;

@@ -67,10 +67,10 @@ auth_disable(Context) ->
 -spec user_add(new_context(), iodata(), iodata()) ->
     {ok,router_pb:'Etcd.AuthUserAddResponse'()}|{error,eetcd_error()}.
 user_add(Context, Name, Password) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(name, Name, C1),
     C3 = maps:put(password, Password, C2),
-    eetcd_auth_gen:user_add(C3).
+    eetcd_auth_gen:user_add({E, C3}).
 
 %%% @doc UserAdd adds a new user without password to an etcd cluster.
 %%% <dl>
@@ -89,10 +89,10 @@ user_add(Context, Name, Password) ->
 -spec user_add(new_context(), iodata()) ->
     {ok,router_pb:'Etcd.AuthUserAddResponse'()}|{error,eetcd_error()}.
 user_add(Context, Name) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(name, Name, C1),
     C3 = maps:put(options, #{no_password => true}, C2),
-    eetcd_auth_gen:user_add(C3).
+    eetcd_auth_gen:user_add({E, C3}).
 
 %%% @doc UserDelete deletes a user from an etcd cluster.
 %%% <dl>
@@ -111,9 +111,9 @@ user_add(Context, Name) ->
 -spec user_delete(new_context(), iodata()) ->
     {ok,router_pb:'Etcd.AuthUserDeleteResponse'()}|{error,eetcd_error()}.
 user_delete(Context, Name) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(name, Name, C1),
-    eetcd_auth_gen:user_delete(C2).
+    eetcd_auth_gen:user_delete({E, C2}).
 
 %%% @doc UserChangePassword changes a password of a user.
 %%% <dl>
@@ -132,10 +132,10 @@ user_delete(Context, Name) ->
 -spec user_change_password(new_context(), iodata(), iodata()) ->
     {ok,router_pb:'Etcd.AuthUserChangePasswordResponse'()}|{error,eetcd_error()}.
 user_change_password(Context, Name, Password) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(name, Name, C1),
     C3 = maps:put(password, Password, C2),
-    eetcd_auth_gen:user_change_password(C3).
+    eetcd_auth_gen:user_change_password({E, C3}).
 
 %%% @doc UserGrantRole grants a role to a user.
 %%% <dl>
@@ -154,10 +154,10 @@ user_change_password(Context, Name, Password) ->
 -spec user_grant_role(new_context(), iodata(), iodata()) ->
     {ok,router_pb:'Etcd.AuthUserGrantRoleResponse'()}|{error,eetcd_error()}.
 user_grant_role(Context, User, Role) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(user, User, C1),
     C3 = maps:put(role, Role, C2),
-    eetcd_auth_gen:user_grant_role(C3).
+    eetcd_auth_gen:user_grant_role({E, C3}).
 
 %%% @doc UserGet gets a detailed information of a user.
 %%% <dl>
@@ -176,9 +176,9 @@ user_grant_role(Context, User, Role) ->
 -spec user_get(new_context(), iodata()) ->
     {ok,router_pb:'Etcd.AuthUserGetResponse'()}|{error,eetcd_error()}.
 user_get(Context, Name) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(name, Name, C1),
-    eetcd_auth_gen:user_get(C2).
+    eetcd_auth_gen:user_get({E, C2}).
 
 %%% @doc UserList gets a list of all users.
 %%% <dl>
@@ -216,10 +216,10 @@ user_list(Context) ->
 -spec user_revoke_role(new_context(), iodata(), iodata()) ->
     {ok,router_pb:'Etcd.AuthUserRevokeRoleResponse'()}|{error,eetcd_error()}.
 user_revoke_role(Context, Name, Role) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(name, Name, C1),
     C3 = maps:put(role, Role, C2),
-    eetcd_auth_gen:user_revoke_role(C3).
+    eetcd_auth_gen:user_revoke_role({E, C3}).
 
 %%% @doc RoleAdd adds a new role to an etcd cluster.
 %%% <dl>
@@ -238,9 +238,9 @@ user_revoke_role(Context, Name, Role) ->
 -spec role_add(new_context(), iodata()) ->
     {ok,router_pb:'Etcd.AuthRoleAddResponse'()}|{error,eetcd_error()}.
 role_add(Context, Name) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(name, Name, C1),
-    eetcd_auth_gen:role_add(C2).
+    eetcd_auth_gen:role_add({E, C2}).
 
 %%% @doc RoleGrantPermission grants a permission to a role.
 %%% PermType: 'READ' | 'WRITE' | 'READWRITE'
@@ -260,11 +260,11 @@ role_add(Context, Name) ->
 -spec role_grant_permission(new_context(), iodata(), iodata(), iodata(), 'READ' | 'WRITE' | 'READWRITE') ->
     {ok,router_pb:'Etcd.AuthRoleGrantPermissionResponse'()}|{error,eetcd_error()}.
 role_grant_permission(Context, Name, Key, RangeEnd, PermType) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(name, Name, C1),
     Permission = #{key => Key, range_end => RangeEnd, permType => PermType},
     C3 = maps:put(perm, Permission, C2),
-    eetcd_auth_gen:role_grant_permission(C3).
+    eetcd_auth_gen:role_grant_permission({E, C3}).
 
 %%% @doc RoleGet gets a detailed information of a role.
 %%% <dl>
@@ -283,9 +283,9 @@ role_grant_permission(Context, Name, Key, RangeEnd, PermType) ->
 -spec role_get(new_context(), iodata()) ->
     {ok,router_pb:'Etcd.AuthRoleGetResponse'()}|{error,eetcd_error()}.
 role_get(Context, Role) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(role, Role, C1),
-    eetcd_auth_gen:role_get(C2).
+    eetcd_auth_gen:role_get({E, C2}).
 
 %%% @doc RoleList gets a list of all roles.
 %%% <dl>
@@ -323,11 +323,11 @@ role_list(Context) ->
 -spec role_revoke_permission(new_context(), iodata(), iodata(), iodata()) ->
     {ok,router_pb:'Etcd.AuthRoleRevokePermissionResponse'()}|{error,eetcd_error()}.
 role_revoke_permission(Context, Role, Key, RangeEnd) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(role, Role, C1),
     C3 = maps:put(key, Key, C2),
     C4 = maps:put(range_end, RangeEnd, C3),
-    eetcd_auth_gen:role_revoke_permission(C4).
+    eetcd_auth_gen:role_revoke_permission({E, C4}).
 
 %%% @doc RoleDelete deletes a role.
 %%% <dl>
@@ -346,9 +346,9 @@ role_revoke_permission(Context, Role, Key, RangeEnd) ->
 -spec role_delete(new_context(), iodata()) ->
     {ok,router_pb:'Etcd.AuthRoleDeleteResponse'()}|{error,eetcd_error()}.
 role_delete(Context, Role) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(role, Role, C1),
-    eetcd_auth_gen:role_delete(C2).
+    eetcd_auth_gen:role_delete({E, C2}).
 
 %%% @doc Create context for request.
 -spec new(new_context()) -> context().

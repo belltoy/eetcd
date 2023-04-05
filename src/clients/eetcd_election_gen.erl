@@ -16,19 +16,19 @@
 -export([resign/1]).
 
 %% @doc Unary RPC for service at path "/v3electionpb.Election/Campaign" 
--spec campaign(router_pb:'Etcd.CampaignRequest'()) ->
+-spec campaign({#{}, router_pb:'Etcd.CampaignRequest'()}) ->
     {ok, router_pb:'Etcd.CampaignResponse'()}|{error,eetcd:eetcd_error()}.
 campaign(Request) ->
     eetcd_stream:unary(Request, 'Etcd.CampaignRequest', <<"/v3electionpb.Election/Campaign">>, 'Etcd.CampaignResponse').
 
 %% @doc Unary RPC for service at path "/v3electionpb.Election/Proclaim" 
--spec proclaim(router_pb:'Etcd.ProclaimRequest'()) ->
+-spec proclaim({#{}, router_pb:'Etcd.ProclaimRequest'()}) ->
     {ok, router_pb:'Etcd.ProclaimResponse'()}|{error,eetcd:eetcd_error()}.
 proclaim(Request) ->
     eetcd_stream:unary(Request, 'Etcd.ProclaimRequest', <<"/v3electionpb.Election/Proclaim">>, 'Etcd.ProclaimResponse').
 
 %% @doc Unary RPC for service at path "/v3electionpb.Election/Leader" 
--spec leader(router_pb:'Etcd.LeaderRequest'()) ->
+-spec leader({#{}, router_pb:'Etcd.LeaderRequest'()}) ->
     {ok, router_pb:'Etcd.LeaderResponse'()}|{error,eetcd:eetcd_error()}.
 leader(Request) ->
     eetcd_stream:unary(Request, 'Etcd.LeaderRequest', <<"/v3electionpb.Election/Leader">>, 'Etcd.LeaderResponse').
@@ -40,7 +40,7 @@ observe(Request) ->
     eetcd_stream:new(Request, <<"/v3electionpb.Election/Observe">>).
 
 %% @doc Unary RPC for service at path "/v3electionpb.Election/Resign" 
--spec resign(router_pb:'Etcd.ResignRequest'()) ->
+-spec resign({#{}, router_pb:'Etcd.ResignRequest'()}) ->
     {ok, router_pb:'Etcd.ResignResponse'()}|{error,eetcd:eetcd_error()}.
 resign(Request) ->
     eetcd_stream:unary(Request, 'Etcd.ResignRequest', <<"/v3electionpb.Election/Resign">>, 'Etcd.ResignResponse').

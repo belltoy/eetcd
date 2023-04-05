@@ -46,10 +46,10 @@ member_list(Context) -> eetcd_cluster_gen:member_list(new(Context)).
     | {error, eetcd:eetcd_error()}
     when PeerURLs :: [iodata()].
 member_add(Context, PeerAddrs) when is_list(PeerAddrs) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(peerURLs, PeerAddrs, C1),
     C3 = maps:put(isLearner, false, C2),
-    eetcd_cluster_gen:member_add(C3).
+    eetcd_cluster_gen:member_add({E, C3}).
 
 %% @doc MemberAddAsLearner adds a new learner member into the cluster.
 %%% <dl>
@@ -70,10 +70,10 @@ member_add(Context, PeerAddrs) when is_list(PeerAddrs) ->
     | {error, {'grpc_error', non_neg_integer(), binary()}} | {error, term()}
     when PeerURLs :: [iodata()].
 member_add_as_learner(Context, PeerAddrs) when is_list(PeerAddrs) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put(peerURLs, PeerAddrs, C1),
     C3 = maps:put(isLearner, true, C2),
-    eetcd_cluster_gen:member_add(C3).
+    eetcd_cluster_gen:member_add({E, C3}).
 
 %% @doc MemberRemove removes an existing member from the cluster.
 %%% <dl>
@@ -92,9 +92,9 @@ member_add_as_learner(Context, PeerAddrs) when is_list(PeerAddrs) ->
 -spec member_remove(new_context(), pos_integer()) ->
     {ok,router_pb:'Etcd.MemberRemoveResponse'()}|{error,eetcd_error()}.
 member_remove(Context, Id) when is_integer(Id) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put('ID', Id, C1),
-    eetcd_cluster_gen:member_remove(C2).
+    eetcd_cluster_gen:member_remove({E, C2}).
 
 %% @doc MemberUpdate updates the peer addresses of the member.
 %%% <dl>
@@ -114,10 +114,10 @@ member_remove(Context, Id) when is_integer(Id) ->
     {ok,router_pb:'Etcd.MemberUpdateResponse'()}|{error,eetcd_error()}.
 member_update(Context, Id, PeerAddrs)
     when is_integer(Id) andalso is_list(PeerAddrs) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put('ID', Id, C1),
     C3 = maps:put(peerURLs, PeerAddrs, C2),
-    eetcd_cluster_gen:member_update(C3).
+    eetcd_cluster_gen:member_update({E, C3}).
 
 %% @doc MemberPromote promotes a member from raft learner (non-voting) to raft voting member.
 %%% <dl>
@@ -136,9 +136,9 @@ member_update(Context, Id, PeerAddrs)
 -spec member_promote(new_context(), pos_integer()) ->
     {ok,router_pb:'Etcd.MemberPromoteResponse'()}|{error,eetcd_error()}.
 member_promote(Context, Id) when is_integer(Id) ->
-    C1 = new(Context),
+    {E, C1} = new(Context),
     C2 = maps:put('ID', Id, C1),
-    eetcd_cluster_gen:member_promote(C2).
+    eetcd_cluster_gen:member_promote({E, C2}).
 
 %%% @doc Create context for request.
 -spec new(new_context()) -> context().

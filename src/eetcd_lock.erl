@@ -17,22 +17,22 @@ with_timeout(Context, Timeout) -> eetcd:with_timeout(Context, Timeout).
 
 %%% @doc name is the identifier for the distributed shared lock to be acquired.
 -spec with_name(context(), Name :: binary()) -> context().
-with_name(Context, Name) ->
-    maps:put(name, Name, Context).
+with_name({E, Context}, Name) ->
+    {E, maps:put(name, Name, Context)}.
 
 %%% @doc lease is the ID of the lease that will be attached to ownership of the
 %%% lock. If the lease expires or is revoked and currently holds the lock,
 %%% the lock is automatically released. Calls to Lock with the same lease will
 %%% be treated as a single acquisition; locking twice with the same lease is a no-op.
 -spec with_lease(context(), LeaseID :: pos_integer()) -> context().
-with_lease(Context, LeaseID) ->
-    maps:put(lease, LeaseID, Context).
+with_lease({E, Context}, LeaseID) ->
+    {E, maps:put(lease, LeaseID, Context)}.
 
 %%% @doc key is a key that will exist on etcd for the duration that the Lock caller
 %%  owns the lock. Users should not modify this key or the lock may exhibit undefined behavior.
 -spec with_key(context(), Key :: binary()) -> context().
-with_key(Context, Key) ->
-    maps:put(key, Key, Context).
+with_key({E, Context}, Key) ->
+    {E, maps:put(key, Key, Context)}.
 
 %%% @doc Lock acquires a distributed shared lock on a given named lock.
 %%% On success, it will return a unique key that exists so long as the

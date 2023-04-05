@@ -8,7 +8,7 @@
 -export_type([key/0, value/0, context/0, name/0, grpc_status/0, eetcd_error/0]).
 -type key() :: iodata().
 -type value() :: iodata().
--type context() :: map().
+-type context() :: {map(), map()}.
 -type name() :: atom() | reference().
 -type new_context() :: atom() | reference() | context().
 -type eetcd_error() :: timeout|{grpc_error,grpc_status()}|{gun_down,any()}|{gun_conn_error,any()}|{gun_stream_error,any()}|eetcd_conn_unavailable.

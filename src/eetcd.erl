@@ -104,15 +104,16 @@ info() ->
     ok.
 
 %%% @doc Create context for request.
--spec new(atom()|reference()|context()) -> context().
-new(ConnName) when is_atom(ConnName) orelse is_reference(ConnName) -> #{eetcd_conn_name => ConnName};
-new(Context) when is_map(Context) -> Context.
+-spec new(new_context()) -> context().
+new(ConnName) when is_atom(ConnName) orelse is_reference(ConnName) ->
+    {#{eetcd_conn_name => ConnName}, #{}};
+new({#{}, #{}} = Context) -> Context.
 
 %% @doc Timeout is an integer greater than zero which specifies how many milliseconds to wait for a reply,
 %% or the atom infinity to wait indefinitely.
 %% If no reply is received within the specified time, the function call fails with `{error, timeout}'.
 -spec with_timeout(context(), pos_integer()|infinity) -> context().
-with_timeout(Context, Timeout) when is_integer(Timeout); Timeout == infinity ->
+with_timeout({EEtcdContext, GRPCContext} = _Context, Timeout) when is_integer(Timeout); Timeout == infinity ->
     case Timeout < 100 of
         true ->
             Reason =
@@ -121,7 +122,7 @@ with_timeout(Context, Timeout) when is_integer(Timeout); Timeout == infinity ->
             throw({error, Reason});
         false -> ok
     end,
-    maps:put(eetcd_reply_timeout, Timeout, Context).
+    {maps:put(eetcd_reply_timeout, Timeout, EEtcdContext), GRPCContext}.
 
 -define(UNBOUND_RANGE_END, "\0").
 
@@ -134,7 +135,7 @@ get_prefix_range_end(Key) ->
             case Prefix of
                 %% keys where all characters >= 0xff are returned as is
                 []     -> Key;
-                Prefix ->
+                _Prefix ->
                     %% advance the last character
                     Ord = lists:last(Prefix),
                     lists:droplast(Prefix) ++ [Ord + 1] ++ Suffix
