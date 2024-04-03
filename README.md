@@ -170,7 +170,11 @@ eetcd_kv:txn(EtcdConnName, If, Then, Else).
       leases => [#{'ID' => 1076765125482045706}]}}
 
 ```
-More detailed examples see [eetcd_kv_SUITE.erl](https://github.com/zhongwencool/eetcd/blob/master/test/eetcd_kv_SUITE.erl)  [eetcd_watch_SUITE.erl](https://github.com/zhongwencool/eetcd/blob/master/test/eetcd_watch_SUITE.erl)  [eetcd_lease_SUITE.erl](https://github.com/zhongwencool/eetcd/blob/master/test/eetcd_lease_SUITE.erl).
+More detailed examples see:
+
+- [`eetcd_kv_SUITE.erl`](https://github.com/zhongwencool/eetcd/blob/master/test/eetcd_kv_SUITE.erl)
+- [`eetcd_watch_SUITE.erl`](https://github.com/zhongwencool/eetcd/blob/master/test/eetcd_watch_SUITE.erl)
+- [`eetcd_lease_SUITE.erl`](https://github.com/zhongwencool/eetcd/blob/master/test/eetcd_lease_SUITE.erl)
 
 ##### Watch - Monitors changes to keys.
 ```erlang

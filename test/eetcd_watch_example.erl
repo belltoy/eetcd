@@ -65,11 +65,14 @@ handle_info(retry, State) ->
 
 handle_info(Msg, #{conn := Conn, mapping := Mapping} = State) ->
     case eetcd_watch:watch_stream(Conn, Msg) of
-        {ok, NewConn, WatchEvent} ->
-            io:format("Received changes: ~p~n", [WatchEvent]),
-            update_services(WatchEvent),
+        {ok, NewConn, WatchResponses} ->
+            io:format("Received watch responses: ~p~n", [WatchResponses]),
+            update_services([ R
+                              || #{created := Created, canceled := Canceled} = R <- WatchResponses,
+                                   Created =:= false, Canceled =:= false
+                            ]),
             io:format("ets: ~p~n", [ets:tab2list(?MODULE)]),
-            {noreply, State#{conn => NewConn, mapping => update_revision(Mapping, WatchEvent)}};
+            {noreply, State#{conn => NewConn, mapping => update_revision(Mapping, WatchResponses)}};
         {more, NewConn} ->
             {noreply, State#{conn => NewConn}};
         {error, Reason} ->
@@ -104,8 +107,10 @@ update_services(#{events := Events}) ->
      end || #{kv := #{key := Key}, type := EventType} <- Events],
     ok.
 
-update_revision(Mapping, #{header := #{revision := Rev}, watch_id := WatchId}) ->
-    maps:update_with(WatchId, fun({Key, _}) -> {Key, Rev} end, Mapping).
+update_revision(Mapping, []) -> Mapping;
+update_revision(Mapping, [#{header := #{revision := Rev}, watch_id := WatchId} | Rest]) ->
+    Mapping1 = maps:update_with(WatchId, fun({Key, _}) -> {Key, Rev} end, Mapping),
+    update_revision(Mapping1, Rest).
 
 ensure_retry(#{retry_ref := undefined} = State) ->
     Ref = erlang:send_after(?CHECK_RETRY_MS, self(), retry),
