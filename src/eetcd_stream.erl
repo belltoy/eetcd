@@ -96,7 +96,6 @@ unary(EtcdName, GunPid, Request, RequestName, Path, ResponseType, Headers, PbMod
     MRef = erlang:monitor(process, GunPid),
     StreamRef = gun:request(GunPid, <<"POST">>, Path, Headers, EncodeBody),
     Res =
-        %% eqwalizer:ignore 
         case await(GunPid, StreamRef, Timeout, MRef) of
             {response, nofin, 200, _Headers} ->
                 await_body(GunPid, StreamRef, Timeout, MRef, ResponseType, PbModule);
@@ -106,7 +105,6 @@ unary(EtcdName, GunPid, Request, RequestName, Path, ResponseType, Headers, PbMod
                         'grpc-message' := <<"etcdserver: invalid auth token">>} ->
                         NewHeaders = eetcd_conn:refresh_token(EtcdName, Headers),
                         StreamRef1 = gun:request(GunPid, <<"POST">>, Path, NewHeaders, EncodeBody),
-                        %% eqwalizer:ignore 
                         case await(GunPid, StreamRef1, Timeout, MRef) of
                             {response, nofin, 200, _Headers} ->
                                 await_body(GunPid, StreamRef1, Timeout, MRef, ResponseType, PbModule);

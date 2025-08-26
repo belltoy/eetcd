@@ -22,8 +22,8 @@ decode(Encoding, Frame, PbType, PbModule) ->
         more -> more
     end.
 
+-spec grpc_status([{binary(), binary()}]) -> map().
 grpc_status(RespHeaders) ->
-    %% eqwalizer:ignore
     GrpcStatus = binary_to_integer(proplists:get_value(<<"grpc-status">>, RespHeaders, <<"0">>)),
     GrpcMessage = proplists:get_value(<<"grpc-message">>, RespHeaders, <<"">>),
     #{'grpc-status' => GrpcStatus, 'grpc-message' => GrpcMessage}.

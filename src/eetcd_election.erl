@@ -44,7 +44,7 @@ observe(EtcdName, Name, Timeout) ->
             end;
         {response, fin, 200, RespHeaders} ->
             erlang:demonitor(MRef, [flush]),
-            {error, eetcd_grpc:grpc_status(RespHeaders)};
+            {error, {grpc_error, eetcd_grpc:grpc_status(RespHeaders)}};
         {error, timeout} ->
             {ok,
                 #{

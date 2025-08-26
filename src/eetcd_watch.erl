@@ -203,7 +203,7 @@ watch_new_(CreateReq, Gun, StreamRef, PbModule, Timeout) ->
             end;
         {response, fin, 200, RespHeaders} ->
             erlang:demonitor(MRef, [flush]),
-            {error, eetcd_grpc:grpc_status(RespHeaders)};
+            {error, {grpc_error, eetcd_grpc:grpc_status(RespHeaders)}};
         {error, _} = Err2 ->
             erlang:demonitor(MRef, [flush]),
             Err2
@@ -224,7 +224,7 @@ watch_reuse_(CreateReq, #{http2_pid   := Gun,
     case eetcd_stream:await(Gun, StreamRef, Timeout, MRef) of
         {response, fin, 200, RespHeaders} ->
             erlang:demonitor(MRef, [flush]),
-            {error, eetcd_grpc:grpc_status(RespHeaders)};
+            {error, {grpc_error, eetcd_grpc:grpc_status(RespHeaders)}};
 
         %% Response for the watch request with the existed/re-used watch stream.
         {data, nofin, Body} ->
@@ -271,7 +271,13 @@ watch_reuse_(CreateReq, #{http2_pid   := Gun,
     | {more, watch_conn()}
     | unknown
     | {error, eetcd_error()} when
-    Message :: term().
+    Message :: GunMsg | Down | term(),
+    Headers :: [{binary(), binary()}],
+    Down :: {'DOWN', reference(), process, pid(), term()},
+    GunMsg :: {gun_data, pid(), reference(), nofin, binary()}
+            | {gun_trailers, pid(), reference(), Headers}
+            | {gun_error, pid(), reference(), term()}
+            | {gun_error, pid(), term()}.
 
 watch_stream(#{stream_ref := Ref, http2_pid := Pid, unprocessed := Unprocessed,
                pb_module := PbModule, watch_ids := Ids} = Conn,
@@ -294,6 +300,7 @@ watch_stream(#{stream_ref := SRef, http2_pid := Pid, monitor_ref := MRef},
     {gun_trailers, Pid, SRef, Headers}) ->
     erlang:demonitor(MRef, [flush]),
     gun:cancel(Pid, SRef),
+    %% eqwalizer:ignore
     {error, {grpc_error, eetcd_grpc:grpc_status(Headers)}}; %% gun trailers
 watch_stream(#{stream_ref := SRef, http2_pid := Pid, monitor_ref := MRef},
     {gun_error, Pid, SRef, Reason}) -> %% stream error
