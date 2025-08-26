@@ -8,9 +8,8 @@
 %% API
 -export([open/2, open/3, close/1]).
 -export([info/0]).
--export([new/1, with_timeout/2]).
 -export([get_prefix_range_end/1]).
--export_type([opts/0]).
+-export_type([opts/0, request_opts/0, stream_ref/0]).
 
 -type opts() :: [ {mode, connect_all | random} |
                   {transport, tcp | tls | ssl} |
@@ -26,12 +25,15 @@
                   {tls_opts, [ssl:tls_client_option()]}
                 ].
 
+-type request_opts() :: [ {reply_timeout, pos_integer()} ].
+-type stream_ref() :: gun:stream_ref().
+
 %% @doc Connects to a etcd server on TCP port
 %% Port on the host with IP address Address, such as:
 %% `open(test,["127.0.0.1:2379","127.0.0.1:2479","127.0.0.1:2579"]).'
--spec open(name(), [string()]) -> {ok, pid()} | {error, any()}.
-open(Name, Hosts) ->
-    open(Name, Hosts, [{transport, tcp}]).
+-spec open(etcd_name(), [string()]) -> {ok, pid()} | {error, any()}.
+open(EtcdName, Hosts) ->
+    open(EtcdName, Hosts, [{transport, tcp}]).
 
 %% @doc Connects to a etcd server.
 %%
@@ -74,59 +76,48 @@ open(Name, Hosts) ->
 %% [https://ninenines.eu/docs/en/gun/2.0/manual/gun/ Gun 2.0 manual].
 %%
 %% You can use `eetcd:info/0' to see the internal connection status.
--spec open(name(), [string()], opts()) -> {ok, pid()} | {error, any()}.
-open(Name, Hosts, Options) ->
-    Cluster = [begin [IP, Port] = string:tokens(Host, ":"), {IP, list_to_integer(Port)} end || Host <- Hosts],
-    eetcd_conn_sup:start_child([{Name, Cluster, Options}]).
+-spec open(etcd_name(), [string()], opts()) -> {ok, pid()} | {error, any()}.
+open(EtcdName, Hosts, Options) ->
+    Hosts1 = [begin [IP, Port] = string:tokens(Host, ":"), {IP, list_to_integer(Port)} end || Host <- Hosts],
+    case eetcd_conn_sup:start_child(EtcdName, Hosts1, Options) of
+        {ok, Pid} ->
+            {ok, Pid};
+        {error, {already_started, _}} ->
+            {error, already_started};
+        {error, {E, _Spec}} ->
+            {error, E}
+    end.
 
 %% @doc close connections with etcd server.
--spec close(name()) -> ok | {error, eetcd_conn_unavailable}.
-close(Name) ->
-    case eetcd_conn:lookup(Name) of
-        {ok, Pid} -> eetcd_conn:close(Pid);
-        Err -> Err
-    end.
+-spec close(etcd_name()) -> ok | {error, not_found}.
+close(EtcdName) ->
+    eetcd_conn_sup:stop_child(EtcdName).
 
 %%% @doc etcd's overview.
 -spec info() -> any().
 info() ->
     Leases = eetcd_lease_sup:info(),
     Conns = eetcd_conn_sup:info(),
-    io:format("|\e[4m\e[48;2;80;80;80m Name           | Status |   IP:Port    | Conn     | Gun      |LeaseNum\e[0m|~n"),
+    io:format("|\e[4m\e[48;2;80;80;80m Name            |   Status |     MemberID     |         Host:Port     | Conn      | Gun       | LeaseNum \e[0m|~n"),
     [begin
-         {Name, #{etcd := Etcd, active_conns := Actives}} = Conn,
+         {Name, #{etcd := Etcd, active_conns := Actives, opening_conns := Openings, members := Members}} = Conn,
+         Availables = [{X, "Active"}|| X <- Actives] ++ [{Y, "Opening"} || Y <- Openings],
          [begin
-              io:format("| ~-15.15s| Active |~s:~w|~p |~p |~7.7w | ~n", [Name, IP, Port, Etcd, Gun, maps:get(Gun, Leases, 0)])
-          end || {{IP, Port}, Gun, _Token} <- Actives]
+              {Host, Port, _Transport} = maps:get(Id, Members),
+              io:format("| ~-15.15s | ~8s | ~16s | ~15s:~-5w | ~p | ~p | ~8.7w |~n",
+                        [Name, Status, eetcd_conn:member_id_hex(Id), Host, Port, Etcd, Gun, maps:get(Gun, Leases, 0)])
+          end || {{Id, Gun, _MRef}, Status} <- Availables]
      end || Conn <- Conns],
-    io:format("|\e[4m\e[48;2;184;0;0m Name           | Status |   IP:Port    | Conn     | ReconnectSecond   \e[49m\e[0m|~n"),
+
+    io:format("|\e[4m\e[48;2;184;0;0m Name            |   Status |     MemberID     |         Host:Port     | Conn      | ReconnectSecond      \e[49m\e[0m|~n"),
     [begin
          {Name, #{etcd := Etcd, freeze_conns := Freezes}} = Conn,
          [begin
-              io:format("| ~-15.15s| Freeze |~s:~w|~p |   ~-15.15w | ~n", [Name, IP, Port, Etcd, Ms / 1000])
-          end || {{IP, Port}, Ms} <- Freezes]
+              io:format("| ~-15.15s |   Freeze | ~16s | ~15s:~-5w | ~p |   ~-18.15w |~n",
+                        [Name, eetcd_conn:member_id_hex(Id), Host, Port, Etcd, Ms / 1000])
+          end || {Id, Host, Port, Ms} <- Freezes]
      end || Conn <- Conns],
     ok.
-
-%%% @doc Create context for request.
--spec new(atom()|reference()|context()) -> context().
-new(ConnName) when is_atom(ConnName) orelse is_reference(ConnName) -> #{eetcd_conn_name => ConnName};
-new(Context) when is_map(Context) -> Context.
-
-%% @doc Timeout is an integer greater than zero which specifies how many milliseconds to wait for a reply,
-%% or the atom infinity to wait indefinitely.
-%% If no reply is received within the specified time, the function call fails with `{error, timeout}'.
--spec with_timeout(context(), pos_integer()|infinity) -> context().
-with_timeout(Context, Timeout) when is_integer(Timeout); Timeout == infinity ->
-    case Timeout < 100 of
-        true ->
-            Reason =
-                lists:flatten(
-                    io_lib:format("Setting timeout to ~wms(less than 100ms) is not allowed", [Timeout])),
-            throw({error, Reason});
-        false -> ok
-    end,
-    maps:put(eetcd_reply_timeout, Timeout, Context).
 
 -define(UNBOUND_RANGE_END, "\0").
 

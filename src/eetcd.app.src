@@ -1,14 +1,18 @@
 {application, eetcd,
     [
         {description, "ETCD V3 client"},
-        {vsn, "0.5.0"},
+        {vsn, "0.5.0-fork"},
+        {pkg_name, "eetcd_fork"},
         {registered, [eetcd_sup, eetcd_conn_sup, eetcd_lease_sup]},
         {mod, {eetcd_app, []}},
         {applications, [kernel, stdlib, gun]},
         {env, []},
         {modules, []},
 
-        {licenses, ["Apache 2.0"]},
-        {links, [{"Github", "https://github.com/zhongwencool/eetcd"}]}
+        {licenses, ["Apache-2.0"]},
+        {links, [
+            {"Github", "https://github.com/zhongwencool/eetcd"},
+            {"Fork", "https://github.com/belltoy/eetcd/releases/tag/v0.5.0-fork"}
+        ]}
     ]
 }.

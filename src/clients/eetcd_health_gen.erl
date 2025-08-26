@@ -1,26 +1,25 @@
 %%%-------------------------------------------------------------------
-%% @doc Behaviour to implement for eectd Etcd.Health
+%% @doc Behaviour to implement for eectd grpc.health.v1.Health
 %% @private
 %%  All detail documents please visit https://github.com/etcd-io/etcd/blob/master/Documentation/dev-guide/api_reference_v3.md
 %% @end
 %%%-------------------------------------------------------------------
 
-%% This module was generated on 2020-04-02T02:00:45+00:00 and should not be modified manually
+%% This module was generated on 2025-07-05T16:57:53+00:00 and should not be modified manually
 
 -module(eetcd_health_gen).
 
--export([check/1]).
--export([watch/1]).
+-export([check/2, check/3]).
 
-%% @doc Unary RPC for service at path "/etcdserverpb.Health/Check" 
--spec check(router_pb:'Etcd.HealthCheckRequest'()) ->
-    {ok, router_pb:'Etcd.HealthCheckResponse'()}|{error,eetcd:eetcd_error()}.
-check(Request) ->
-    eetcd_stream:unary(Request, 'Etcd.HealthCheckRequest', <<"/etcdserverpb.Health/Check">>, 'Etcd.HealthCheckResponse').
+%% @doc Unary RPC for service at path `/grpc.health.v1.Health/Check'
+-spec check(Client :: eetcd:client(), Request :: health_pb:'grpc.health.v1.HealthCheckRequest'()) ->
+    {ok, health_pb:'grpc.health.v1.HealthCheckResponse'()} | {error, eetcd:eetcd_error()}.
+check(Client, Request) ->
+    check(Client, Request, []).
 
-%% @doc Unary RPC for service at path "/etcdserverpb.Health/Watch" 
--spec watch(router_pb:'Etcd.HealthCheckRequest'()) ->
-    {ok, router_pb:'Etcd.HealthCheckResponse'()}|{error,eetcd:eetcd_error()}.
-watch(Request) ->
-    eetcd_stream:unary(Request, 'Etcd.HealthCheckRequest', <<"/etcdserverpb.Health/Watch">>, 'Etcd.HealthCheckResponse').
+%% @doc Unary RPC for service at path `/grpc.health.v1.Health/Check'
+-spec check(Client :: eetcd:client(), Request :: health_pb:'grpc.health.v1.HealthCheckRequest'(), Opts :: eetcd:request_opts()) ->
+    {ok, health_pb:'grpc.health.v1.HealthCheckResponse'()} | {error, eetcd:eetcd_error()}.
+check(Client, Request, Opts) ->
+    eetcd_stream:unary(Client, Request, 'grpc.health.v1.HealthCheckRequest', <<"/grpc.health.v1.Health/Check">>, 'grpc.health.v1.HealthCheckResponse', health_pb, Opts).
 
