@@ -416,7 +416,7 @@ connect_and_await_up(EtcdName, {Id, {Host, Port, Transport}}, GunOpts0) ->
                         [member_id_hex(Id), Host, Port]),
             {ok, {GunPid, MRef}}
         catch
-            error:Reason1 -> error({GunPid, Reason1})
+            _:Reason1 -> error({GunPid, Reason1})
         end
     catch
         error:{GunPid0, Reason} ->
@@ -431,12 +431,7 @@ await_check(EtcdName, GunPid) ->
     case check_health_remote(EtcdName, GunPid) of
         ok -> ok;
         {error, HealthReason} -> error(HealthReason)
-    end,
-    case check_leader_remote(EtcdName, GunPid) of
-        ok -> ok;
-        {error, LeaderReason} -> error(LeaderReason)
-    end,
-    ok.
+    end.
 
 do_reconnect(#{mode := random,
                members := Members,
@@ -489,7 +484,7 @@ handle_gun_up(GunPid, #{name := EtcdName, opening_conns := Openings} = _State) -
                           ok = await_check(EtcdName, GunPid),
                           Self ! {await_check_ok, GunPid}
                       catch
-                          error:Reason ->
+                          _:Reason ->
                               Self ! {await_check_error, GunPid, Reason}
                       end
                   end);
@@ -527,13 +522,8 @@ do_check_health([], #{} = State) -> State;
 do_check_health([{Id, GunPid, MRef} | Rest], #{name := EtcdName, active_conns := Actives} = State) ->
     try
         case check_health_remote(EtcdName, GunPid) of
-            ok ->
-                case check_leader_remote(EtcdName, GunPid) of
-                    ok -> do_check_health(Rest, State);
-                    {error, Reason2} -> error({leader, Reason2})
-                end;
-            {error, Reason1} ->
-                error({health, Reason1})
+            ok -> do_check_health(Rest, State);
+            {error, Reason1} -> error({health, Reason1})
         end
     catch
         error:{Type, Reason} ->
@@ -566,13 +556,6 @@ check_health_remote(EtcdName, GunPid) ->
         {error, {grpc_error, #{'grpc-message' := <<"unknown service grpc.health.v1.Health">>,
                                'grpc-status'  := ?GRPC_STATUS_UNIMPLEMENTED}}} -> ok;
         {ok, #{status := Status}} -> {error, {unhealthy, Status}};
-        {error, _Reason} = Err -> Err
-    end.
-
-check_leader_remote(EtcdName, GunPid) ->
-    case eetcd_maintenance_gen:status({EtcdName, {GunPid, ?HEADERS}}, #{}, ?DEFAULT_REQ_OPTS) of
-        {ok, #{leader := Leader}} when Leader > 0 -> ok;
-        {ok, #{errors := Errors, leader := 0}} -> {error, {no_leader, Errors}};
         {error, _Reason} = Err -> Err
     end.
 
