@@ -75,7 +75,6 @@ start_link(Caller, EtcdName, LeaseID) ->
 %%%===================================================================
 
 init([Caller, EtcdName, LeaseID]) ->
-    process_flag(trap_exit, true),
     case first_keep_alive_once(EtcdName, LeaseID) of
         {ok, Gun, Ref, MRef, TTL, PbModule} ->
             %% eqwalizer:ignore
