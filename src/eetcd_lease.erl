@@ -90,12 +90,12 @@ init([Caller, EtcdName, LeaseID]) ->
     end.
 
 handle_call(gun_pid, _From, State = #{gun := Gun}) ->
-    {reply, Gun, State, State};
+    {reply, Gun, State};
 handle_call(_Request, _From, State) ->
-    {reply, ignore, State, State}.
+    {reply, ignore, State}.
 
 handle_cast(_Request, State) ->
-    {noreply, State, State}.
+    {noreply, State}.
 
 handle_info(?TRY_RECONNECTING, State) ->
     try_reconnecting(State);
