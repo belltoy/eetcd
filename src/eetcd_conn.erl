@@ -9,7 +9,7 @@
     open/1, close/1,
     round_robin_select/1, pick_member/2,
     check_health/1, refresh_token/2,
-    set_credentails/3, unset_credentails/1,
+    set_credentials/3, unset_credentials/1,
     update_member_list/2,
     member_id_hex/1
 ]).
@@ -83,10 +83,10 @@ pick_member(EtcdName, MemberId) ->
         {error, _} = E -> E
     end.
 
-set_credentails(EtcdName, UserName, Password) ->
+set_credentials(EtcdName, UserName, Password) ->
     gen_server:call(EtcdName, {set_credentials, {UserName, Password}}).
 
-unset_credentails(EtcdName) ->
+unset_credentials(EtcdName) ->
     gen_server:call(EtcdName, {set_credentials, undefined}).
 
 update_member_list(_Name, Members) when map_size(Members) =:= 0 ->
@@ -182,9 +182,9 @@ handle_call(round_robin_select, _From, #{active_conns := [{_Host, GunPid, _MRef}
                                          auth_token := Token} = State) ->
     {reply, {ok, GunPid, Token}, State#{active_conns => Rest ++ [Conn]}};
 
-handle_call({set_credentails, undefined}, _From, State) ->
+handle_call({set_credentials, undefined}, _From, State) ->
     {reply, ok, State#{credentials => undefined, auth_token => undefined}};
-handle_call({set_credentails, {UserName, Password}}, _From, State) ->
+handle_call({set_credentials, {UserName, Password}}, _From, State) ->
     {reply, ok, State#{credentials => #{name => UserName, password => Password}}};
 
 handle_call({pick_member, _MemberId}, _From, #{mode := random} = State) ->
@@ -318,7 +318,7 @@ terminate(Reason, #{name := EtcdName, active_conns := Actives, opening_conns := 
     [ensure_close(GunPid) || {_Host, GunPid, _Token} <- Actives ++ Openings],
     ok.
 
-code_change(_OldVsntateName, State, _Extra) ->
+code_change(_OldStateName, State, _Extra) ->
     {ok, State}.
 
 %%%===================================================================
@@ -455,7 +455,7 @@ do_reconnect(#{mode := connect_all,
     State#{opening_conns => Openings ++ NewOpenings}.
 
 open_members([], _GunOpts, Result, _) -> Result;
-open_members([{Id, {Host, Port, Transport}} | Rest], GunOpts0, Result, AllorOne) ->
+open_members([{Id, {Host, Port, Transport}} | Rest], GunOpts0, Result, AllOrOne) ->
     GunOpts1 = GunOpts0#{retry => 0},
     GunOpts = case Transport of
                   tcp -> GunOpts1;
@@ -465,14 +465,14 @@ open_members([{Id, {Host, Port, Transport}} | Rest], GunOpts0, Result, AllorOne)
         {ok, GunPid} ->
             MRef = erlang:monitor(process, GunPid),
             ?LOG_NOTICE("Opening connection to etcd member ~s:~p", [Host, Port]),
-            case AllorOne of
-                all -> open_members(Rest, GunOpts, [{Id, GunPid, MRef} | Result], AllorOne);
+            case AllOrOne of
+                all -> open_members(Rest, GunOpts, [{Id, GunPid, MRef} | Result], AllOrOne);
                 one -> [{Id, GunPid, MRef}]
             end;
         {error, Reason} ->
             ?LOG_WARNING("Failed to open connection to etcd ~s:~p, reason: ~p",
                          [Host, Port, Reason]),
-            open_members(Rest, GunOpts, Result, AllorOne)
+            open_members(Rest, GunOpts, Result, AllOrOne)
     end.
 
 handle_gun_up(GunPid, #{name := EtcdName, opening_conns := Openings} = _State) ->
