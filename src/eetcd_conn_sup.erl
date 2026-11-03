@@ -32,7 +32,6 @@ child_info(Pid) ->
     #{name := Name, members := Members, active_conns := Actives, opening_conns := Openings}
         = eetcd_conn:info(Pid),
     Freezes0 = maps:without([Id || {Id, _GunPid, _MRef} <- Actives ++ Openings], Members),
-    %% elp:ignore W0034
     Freezes = [{Id, Host, Port, 0} || {Id, {Host, Port, _Transport}} <- maps:to_list(Freezes0)],
     {Name, #{etcd => Pid,
              active_conns => Actives,

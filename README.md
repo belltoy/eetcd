@@ -20,6 +20,45 @@ See [the full v3 API documentation](https://etcd.io/docs/) for more:
 7. Election.
 8. `grpc.health.v1.Health`.
 
+## Changes from upstream
+
+This fork is based on upstream `origin/master` at `402af1a` (eetcd 0.6.0)
+and is published on Hex as `eetcd_fork`, with the Erlang application name `eetcd`.
+The current fork version is `0.7.0-fork`.
+
+- **Runtime and tooling:** requires Erlang/OTP 27 or later, upgrades Gun to 2.7.0,
+  adds `eqwalizer_support`, and removes the Gradualizer plugin.
+- **Connection management:** replaces the connection state machine with a
+  supervised `gen_server`, tracks connections by etcd member ID, caches discovered
+  members across connection process restarts, and refactors reconnection and
+  member synchronization. `eetcd:info/0` now includes member IDs and opening
+  connections.
+- **Authentication and health checks:** uses the etcd `token` header, supports
+  updating credentials through `eetcd_conn:set_credentials/3` and
+  `eetcd_conn:unset_credentials/1`, and separates the standard gRPC health service
+  into its own protobuf module.
+- **Lease lifecycle:** fixes keep-alive termination and caller exit handling,
+  centralizes `KeepAliveHalted` notifications, and fixes lease connection reporting.
+- **Code generation:** uses `rebar3_eetcd_plugin_fork` and regenerates RPC clients
+  with explicit client, request, and request-options arguments.
+
+### API migration notes
+
+- Connection names must be atoms; reference names are no longer supported.
+- Use the generated `eetcd_*_gen` modules for RPCs. The `eetcd_auth`,
+  `eetcd_cluster`, and `eetcd_lock` wrapper modules have been removed, and the KV,
+  lease, election, and maintenance modules retain selected convenience helpers.
+- Pass request maps directly instead of creating contexts with `eetcd:new/1`.
+  Replace `eetcd:with_timeout/2` with request options, for example:
+  `eetcd_kv_gen:range(Name, #{key => <<"key">>}, [{reply_timeout, 5000}])`.
+- Member-specific maintenance helpers such as `eetcd_maintenance:status/2` and
+  `eetcd_maintenance:defragment/2` take a member ID as their second argument.
+- Low-level streaming RPCs now return `{ok, GunPid, StreamRef, PbModule}`;
+  pass the protobuf module to `eetcd_stream:data/6` and the gRPC codec functions.
+- Replace `eetcd_lease:close/0` with `eetcd_lease_sup:close/0`, which returns `ok`.
+  Closing keep-alive processes does not revoke their leases; use
+  `eetcd_lease_gen:lease_revoke/2` to revoke a lease explicitly.
+
 ## Quick Start
 
 ### 1. Setup

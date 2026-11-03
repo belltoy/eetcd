@@ -11,44 +11,39 @@ new(Key) -> #{key => Key}.
 with_range_end(Cmp, End) -> Cmp#{range_end => End}.
 
 value(Cmp, Result, Value) ->
-    maps:merge(Cmp,
-        #{
+    Cmp#{
             result => to_result(Result),
             target => 'VALUE',
             target_union => {value, Value}
-        }).
+        }.
 
 version(Cmp, Result, Version) ->
-    maps:merge(Cmp,
-        #{
+    Cmp#{
             result => to_result(Result),
             target => 'VERSION',
             target_union => {version, Version}
-        }).
+        }.
 
 mod_revision(Cmp, Result, Version) ->
-    maps:merge(Cmp,
-        #{
+    Cmp#{
             result => to_result(Result),
             target => 'MOD',
             target_union => {mod_revision, Version}
-        }).
+        }.
 
 create_revision(Cmp, Result, Version) ->
-    maps:merge(Cmp,
-        #{
+    Cmp#{
             result => to_result(Result),
             target => 'CREATE',
             target_union => {create_revision, Version}
-        }).
+        }.
 
 lease(Cmp, Result, Version) ->
-    maps:merge(Cmp,
-        #{
+    Cmp#{
             result => to_result(Result),
             target => 'LEASE',
             target_union => {lease, Version}
-        }).
+        }.
 
 
 to_result("=") -> 'EQUAL';

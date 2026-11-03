@@ -77,7 +77,6 @@ start_link(Caller, EtcdName, LeaseID) ->
 init([Caller, EtcdName, LeaseID]) ->
     case first_keep_alive_once(EtcdName, LeaseID) of
         {ok, Gun, Ref, MRef, TTL, PbModule} ->
-            %% eqwalizer:ignore
             After = erlang:max(round(TTL / ?BLOCK), 1) * 1000,
             TimeRef = schedule_next_keep_alive(After),
             {ok, #{name => EtcdName, gun => Gun, caller => Caller, pb_module => PbModule,

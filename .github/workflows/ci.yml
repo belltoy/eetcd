@@ -78,6 +78,6 @@ jobs:
           hexpm-mirrors: |
             https://cdn.jsdelivr.net/hex
             https://builds.hex.pm
-      - run: rebar3 do xref, dialyzer, gradualizer, ct -v -c, cover -v
+      - run: rebar3 do xref, dialyzer, ct -v -c, cover -v
         env:
           TERM: xterm-color

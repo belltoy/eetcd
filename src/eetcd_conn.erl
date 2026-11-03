@@ -660,4 +660,4 @@ shuffle(List) ->
     [X || {_, X} <- lists:sort([{rand:uniform(), N} || N <- List])].
 
 member_id_hex(Id) when is_integer(Id) ->
-    string:lowercase(binary:encode_hex(<<Id:64>>)).
+    binary:encode_hex(<<Id:64>>, lowercase).
