@@ -7,7 +7,7 @@ jobs:
     name: Erlang/OTP ${{matrix.otp}}
     strategy:
       matrix:
-        otp: ['27', '28', '29']
+        otp: ['27.0', '28.0', '29.0']
 
     services:
       etcd0:
@@ -78,9 +78,9 @@ jobs:
             docker logs "$container" || true
           done
           exit 1
-      - uses: erlef/setup-beam@v1.17.2
+      - uses: erlef/setup-beam@v1.24.1
         with:
-          otp-version: ${{matrix.otp}}
+          otp-version: OTP-${{matrix.otp}}
           rebar3-version: '3.26.0'
           version-type: strict
           hexpm-mirrors: |
