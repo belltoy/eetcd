@@ -3,15 +3,15 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Erlang/OTP ${{matrix.otp}}
     strategy:
       matrix:
-        otp: ['24', '25', '26', '27']
+        otp: ['27', '28', '29']
 
     services:
       etcd0:
-        image: quay.io/coreos/etcd:v3.5.6
+        image: quay.io/coreos/etcd:v3.5.10
         env:
           ETCD_NAME: etcd0
           ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd0:2380
@@ -30,7 +30,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       etcd1:
-        image: quay.io/coreos/etcd:v3.5.6
+        image: quay.io/coreos/etcd:v3.5.10
         env:
           ETCD_NAME: etcd1
           ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd1:2480
@@ -49,7 +49,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       etcd2:
-        image: quay.io/coreos/etcd:v3.5.6
+        image: quay.io/coreos/etcd:v3.5.10
         env:
           ETCD_NAME: etcd2
           ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd2:2580
@@ -73,7 +73,7 @@ jobs:
       - uses: erlef/setup-beam@v1.17.2
         with:
           otp-version: ${{matrix.otp}}
-          rebar3-version: '3.22.1'
+          rebar3-version: '3.26.0'
           version-type: strict
           hexpm-mirrors: |
             https://cdn.jsdelivr.net/hex
