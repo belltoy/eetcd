@@ -277,11 +277,13 @@ compact(Config) ->
     %% Compact compacts the event history in the etcd key-value store.
     %% The key-value store should be periodically compacted or the event history will continue to grow indefinitely.
     [{Kv1, Vv1}, {Kv2, Vv2}, {Kv3, Vv3}, {Kv4, Vv4} | _] = get_kvs(Config),
-    eetcd_kv_gen:put(?NAME(Config), Req1 = #{key => Kv1, value => Vv1}),
+    Req1 = #{key => Kv1, value => Vv1},
+    Req2 = #{key => Kv2, value => Vv2},
     eetcd_kv_gen:put(?NAME(Config), Req1),
     eetcd_kv_gen:put(?NAME(Config), Req1),
     eetcd_kv_gen:put(?NAME(Config), Req1),
-    eetcd_kv_gen:put(?NAME(Config), Req2 = #{key => Kv2, value => Vv2}),
+    eetcd_kv_gen:put(?NAME(Config), Req1),
+    eetcd_kv_gen:put(?NAME(Config), Req2),
     eetcd_kv_gen:put(?NAME(Config), Req2),
     eetcd_kv_gen:put(?NAME(Config), #{key => Kv3, value => Vv3}),
     eetcd_kv_gen:put(?NAME(Config), #{key => Kv4, value => Vv4}),
