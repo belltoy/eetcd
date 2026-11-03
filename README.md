@@ -1,6 +1,6 @@
-[![Build Status](https://github.com/zhongwencool/eetcd/actions/workflows/ci.yml/badge.svg)](https://github.com/zhongwencool/eetcd/actions)
-[![GitHub tag](https://img.shields.io/github/tag/zhongwencool/eetcd.svg)](https://github.com/zhongwencool/eetcd)
-[![Hex.pm Version](https://img.shields.io/hexpm/v/eetcd.svg)](https://hex.pm/packages/eetcd)
+[![Build Status](https://github.com/belltoy/eetcd/actions/workflows/ci.yml/badge.svg)](https://github.com/belltoy/eetcd/actions)
+[![GitHub tag](https://img.shields.io/github/tag/belltoy/eetcd.svg)](https://github.com/belltoy/eetcd)
+[![Hex.pm Version](https://img.shields.io/hexpm/v/eetcd_fork.svg)](https://hex.pm/packages/eetcd_fork)
 
 # eetcd
 
